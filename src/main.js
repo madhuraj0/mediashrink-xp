@@ -21,7 +21,6 @@ const btnClearFile = document.getElementById('btnClearFile');
 const presetChips = document.querySelectorAll('.preset-chip[data-size]');
 const targetInput = document.getElementById('targetInput');
 const targetUnit = document.getElementById('targetUnit');
-const targetGuaranteeText = document.getElementById('targetGuaranteeText');
 
 const toggleMoreSettings = document.getElementById('toggleMoreSettings');
 const moreSettingsContent = document.getElementById('moreSettingsContent');
@@ -77,17 +76,6 @@ function logToTerminal(msg) {
   terminalLog.scrollTop = terminalLog.scrollHeight;
 }
 
-function updateGuaranteeText() {
-  const val = parseFloat(targetInput.value);
-  const unit = targetUnit.value;
-  if (isNaN(val) || val <= 0) {
-    targetGuaranteeText.textContent = 'Auto / Unconstrained';
-    return;
-  }
-  const bytes = unit === 'MB' ? val * 1024 * 1024 : val * 1024;
-  targetGuaranteeText.textContent = `✓ Guaranteed Max: ${formatBytes(bytes)}`;
-}
-
 // Sound Sync
 function updateSoundUI() {
   const muted = sound.isMuted();
@@ -105,9 +93,13 @@ btnToggleSound.addEventListener('click', () => {
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     sound.playClick();
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => {
+      b.classList.remove('active');
+      b.setAttribute('aria-selected', 'false');
+    });
     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
     btn.classList.add('active');
+    btn.setAttribute('aria-selected', 'true');
     const target = document.getElementById(btn.dataset.tab);
     if (target) target.classList.add('active');
   });
@@ -121,17 +113,14 @@ presetChips.forEach(chip => {
     chip.classList.add('active');
     targetInput.value = chip.dataset.size;
     targetUnit.value = chip.dataset.unit;
-    updateGuaranteeText();
   });
 });
 
 targetInput.addEventListener('input', () => {
   presetChips.forEach(c => c.classList.remove('active'));
-  updateGuaranteeText();
 });
 targetUnit.addEventListener('change', () => {
   presetChips.forEach(c => c.classList.remove('active'));
-  updateGuaranteeText();
 });
 
 // Toggle Advanced Options
@@ -143,6 +132,13 @@ toggleMoreSettings.addEventListener('click', () => {
 
 // Dropzone & File Selection
 dropZone.addEventListener('click', () => fileInput.click());
+dropZone.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault();
+    fileInput.click();
+  }
+});
+
 fileInput.addEventListener('change', (e) => {
   if (e.target.files && e.target.files[0]) {
     onFileChosen(e.target.files[0]);
@@ -267,8 +263,8 @@ btnCompress.addEventListener('click', async () => {
     currentCompressedResult = result;
     renderResults(result, isVideo);
     sound.playSuccess();
-    statusLabel.textContent = `Completed! Final size: ${formatBytes(result.size)}`;
-    logToTerminal(`[Complete] Final file size: ${formatBytes(result.size)} (Target was: ${targetBytes ? formatBytes(targetBytes) : 'None'})`);
+    statusLabel.textContent = `Completed: ${formatBytes(result.size)}`;
+    logToTerminal(`[Complete] Compressed size: ${formatBytes(result.size)} (Target: ${targetBytes ? formatBytes(targetBytes) : 'Auto'})`);
   } catch (err) {
     console.error(err);
     sound.playError();
@@ -314,7 +310,7 @@ function renderResults(result, isVideo) {
   resCompSize.textContent = formatBytes(result.size);
 
   const pctSaved = Math.max(0, ((selectedFile.size - result.size) / selectedFile.size) * 100).toFixed(1);
-  savingsBadge.textContent = `Saved ${pctSaved}% (${formatBytes(selectedFile.size - result.size)})`;
+  savingsBadge.textContent = `-${pctSaved}% Saved (${formatBytes(selectedFile.size - result.size)})`;
 
   const downloadFilename = getDownloadName(selectedFile.name, result.format);
   btnDownload.onclick = () => triggerDownload(result.blob, downloadFilename);
@@ -471,4 +467,3 @@ btnClearTerminal.addEventListener('click', () => {
 
 // Initialization
 updateSoundUI();
-updateGuaranteeText();

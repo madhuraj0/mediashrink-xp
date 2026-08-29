@@ -1,4 +1,4 @@
-/* Retro Desktop OS Theme (User-Friendly & High Contrast) */
+/* Retro Desktop OS Theme (Optimized, High-Contrast & Touch-Friendly) */
 @import url('https://fonts.googleapis.com/css2?family=Tahoma:wght@400;700&display=swap');
 
 :root {
@@ -35,7 +35,7 @@ body {
   flex: 1;
   position: relative;
   background: radial-gradient(circle at 50% 20%, #4fa3e3 0%, #2772b7 55%, #185292 100%);
-  padding: 20px 16px 50px 16px;
+  padding: 24px 16px 50px 16px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -43,7 +43,7 @@ body {
   overflow-y: auto;
 }
 
-/* Bliss Rolling Hills Vector Artwork */
+/* Bliss Rolling Hills Vector Backdrop */
 .bliss-bg {
   position: fixed;
   top: 0;
@@ -77,12 +77,12 @@ body {
   to { transform: scale(1); opacity: 1; }
 }
 
-/* Title Bar */
+/* Roomier Title Bar */
 .window-titlebar {
   background: var(--theme-blue-header);
-  height: 38px;
+  height: 44px;
   border-radius: 7px 7px 0 0;
-  padding: 0 10px;
+  padding: 0 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -93,16 +93,17 @@ body {
 .title-left {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   color: white;
   font-weight: bold;
-  font-size: 14px;
+  font-size: 15px;
+  letter-spacing: 0.2px;
   text-shadow: 1px 1px 2px #001f66;
 }
 
 .window-controls {
   display: flex;
-  gap: 6px;
+  gap: 8px;
   align-items: center;
 }
 
@@ -111,12 +112,14 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.6);
   border-radius: 4px;
   color: white;
-  padding: 3px 8px;
+  padding: 4px 10px;
   font-size: 12px;
+  font-weight: bold;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
+  transition: background 0.15s ease;
 }
 
 .sound-toggle-btn:hover {
@@ -127,13 +130,13 @@ body {
 .window-tabs {
   display: flex;
   background: #d8d4c4;
-  padding: 6px 12px 0 12px;
-  gap: 4px;
+  padding: 8px 12px 0 12px;
+  gap: 6px;
   border-bottom: 2px solid #7f9db9;
 }
 
 .tab-btn {
-  padding: 8px 18px;
+  padding: 9px 20px;
   background: #e2dfd2;
   border: 1px solid #7f9db9;
   border-bottom: none;
@@ -164,10 +167,12 @@ body {
   background: var(--theme-bg);
   max-height: 80vh;
   overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .tab-content {
   display: none;
+  width: 100%;
 }
 .tab-content.active {
   display: block;
@@ -193,7 +198,7 @@ body {
 .dropzone:hover, .dropzone.dragover {
   background: #ebf4ff;
   border-color: #0054e3;
-  transform: scale(1.01);
+  transform: scale(1.005);
 }
 
 .dropzone-icon {
@@ -256,6 +261,7 @@ body {
   margin-top: 14px;
   background: var(--theme-panel-bg);
   box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.9), 1px 1px 2px rgba(0,0,0,0.04);
+  width: 100%;
 }
 
 .section-title {
@@ -312,6 +318,7 @@ body {
   padding: 10px 14px;
   border: 1px solid #7f9db9;
   border-radius: 6px;
+  flex-wrap: wrap;
 }
 
 .size-input {
@@ -332,13 +339,6 @@ body {
   border-radius: 4px;
   background: #fff;
   outline: none;
-}
-
-.guarantee-badge {
-  color: #2e7d32;
-  font-weight: bold;
-  font-size: 13px;
-  margin-left: auto;
 }
 
 /* Big Action Button */
@@ -381,7 +381,7 @@ body {
   box-shadow: none;
 }
 
-/* Collapsible More Settings */
+/* Collapsible Settings */
 .collapsible-toggle {
   display: inline-flex;
   align-items: center;
@@ -390,7 +390,7 @@ body {
   color: #003399;
   cursor: pointer;
   font-weight: bold;
-  margin-top: 10px;
+  margin-top: 12px;
 }
 
 .collapsible-content {
@@ -524,6 +524,15 @@ body {
   object-fit: contain;
 }
 
+.savings-badge {
+  background: #2e7d32;
+  color: #fff;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: 13px;
+}
+
 .btn-download-big {
   width: 100%;
   margin-top: 14px;
@@ -546,18 +555,25 @@ body {
   background: linear-gradient(180deg, #66bb6a 0%, #388e3c 100%);
 }
 
-/* Batch Table */
+/* Batch Table & Container (Contained within Tab) */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--theme-border);
+  border-radius: 4px;
+  margin-top: 10px;
+  background: #fff;
+}
+
 .batch-table {
   width: 100%;
   border-collapse: collapse;
-  background: #fff;
-  border: 1px solid var(--theme-border);
-  margin-top: 10px;
+  min-width: 500px;
 }
 
 .batch-table th, .batch-table td {
   border: 1px solid #d0ccba;
-  padding: 8px 10px;
+  padding: 9px 12px;
   font-size: 12px;
   text-align: left;
 }
@@ -588,7 +604,7 @@ body {
   display: flex;
   background: #ece9d8;
   border-top: 1px solid #d0ccba;
-  padding: 6px 12px;
+  padding: 8px 16px;
   font-size: 12px;
   color: #444;
   justify-content: space-between;

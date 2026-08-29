@@ -3,7 +3,47 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MediaShrink - Free In-Browser Video & Image Compressor</title>
+  
+  <!-- Primary SEO Meta Tags -->
+  <title>MediaShrink - In-Browser Video & Image Compressor to Target File Size</title>
+  <meta name="title" content="MediaShrink - In-Browser Video & Image Compressor to Target File Size">
+  <meta name="description" content="Free, 100% private in-browser media compressor. Compress and resize MP4, WebM, WebP, JPEG to exact target file sizes (e.g. 500KB, 1MB, 8MB for Discord) with zero server uploads.">
+  <meta name="keywords" content="video compressor, image compressor, target file size, compress video to 8mb, discord video compressor, 1mb video compressor, ffmpeg wasm, client-side video compressor, webp converter, mp4 compressor, online video shrinker, private video compressor">
+  <meta name="author" content="Madhuraj">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://madhuraj0.github.io/mediashrink-xp/">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://madhuraj0.github.io/mediashrink-xp/">
+  <meta property="og:title" content="MediaShrink - In-Browser Video & Image Compressor to Target File Size">
+  <meta property="og:description" content="Compress videos and images to exact target file sizes in your browser with zero uploads.">
+  <meta property="og:image" content="https://madhuraj0.github.io/mediashrink-xp/favicon.svg">
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content="https://madhuraj0.github.io/mediashrink-xp/">
+  <meta property="twitter:title" content="MediaShrink - In-Browser Video & Image Compressor to Target File Size">
+  <meta property="twitter:description" content="Compress videos and images to exact target file sizes in your browser with zero uploads.">
+
+  <!-- Schema.org JSON-LD Structured Data for SEO -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "MediaShrink",
+    "url": "https://madhuraj0.github.io/mediashrink-xp/",
+    "description": "Client-side browser application to compress and convert videos and images to strict target file sizes.",
+    "applicationCategory": "MultimediaApplication",
+    "operatingSystem": "All modern browsers (Chrome, Firefox, Safari, Edge)",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    }
+  }
+  </script>
+
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🗜️</text></svg>">
   <script src="./coi-serviceworker.js"></script>
   <link rel="stylesheet" href="./src/style.css">
@@ -37,43 +77,43 @@
     </svg>
 
     <!-- Main Window -->
-    <div class="app-window">
-      <!-- Title Bar -->
-      <div class="window-titlebar">
+    <main class="app-window">
+      <!-- Title Bar (Roomier, No brackets) -->
+      <header class="window-titlebar">
         <div class="title-left">
           <span>🗜️</span>
-          <span>MediaShrink - [Target Size Media Compressor]</span>
+          <span>MediaShrink - Target Size Media Compressor</span>
         </div>
         <div class="window-controls">
-          <button class="sound-toggle-btn" id="btnToggleSound">
+          <button class="sound-toggle-btn" id="btnToggleSound" aria-label="Toggle sound effects">
             <span id="soundIcon">🔊</span>
             <span id="soundLabel">Sound ON</span>
           </button>
         </div>
-      </div>
+      </header>
 
       <!-- Navigation Tabs -->
-      <div class="window-tabs">
-        <button class="tab-btn active" data-tab="tabSingle">🗜️ Media Compressor</button>
-        <button class="tab-btn" data-tab="tabBatch">📑 Batch Queue</button>
-        <button class="tab-btn" data-tab="tabLog">💻 Activity Log</button>
-      </div>
+      <nav class="window-tabs" role="tablist">
+        <button class="tab-btn active" data-tab="tabSingle" role="tab" aria-selected="true">🗜️ Media Compressor</button>
+        <button class="tab-btn" data-tab="tabBatch" role="tab" aria-selected="false">📑 Batch Queue</button>
+        <button class="tab-btn" data-tab="tabLog" role="tab" aria-selected="false">💻 Activity Log</button>
+      </nav>
 
       <!-- Window Body -->
       <div class="window-body">
         
         <!-- Tab 1: Single File Compressor -->
-        <div class="tab-content active" id="tabSingle">
+        <section class="tab-content active" id="tabSingle" role="tabpanel">
           
           <!-- Dropzone -->
-          <div class="dropzone" id="dropZone">
+          <div class="dropzone" id="dropZone" tabindex="0" role="button" aria-label="Drop files here to upload">
             <input type="file" id="fileInput" accept="image/*,video/*" style="display: none;">
             <div class="dropzone-icon">📁</div>
             <div class="dropzone-title">Click to browse or Drag & Drop any video or image</div>
-            <div class="dropzone-desc">Supports MP4, WebM, MOV, MKV, JPG, PNG, WebP, GIF • 100% Client-Side & Private</div>
+            <div class="dropzone-desc">MP4, WebM, MOV, MKV, JPG, PNG, WebP • 100% Client-Side & Private</div>
           </div>
 
-          <!-- Selected File Details (Appears on selection) -->
+          <!-- Selected File Details -->
           <div class="selected-file-card" id="fileCard" style="display: none;">
             <div class="file-details">
               <div class="file-icon" id="fileIcon">🎬</div>
@@ -89,7 +129,7 @@
           <div class="section-box">
             <div class="section-title">
               <span>🎯</span>
-              <span>Target File Size Limit (Output will strictly fall under this size):</span>
+              <span>Target File Size:</span>
             </div>
 
             <!-- Big Preset Buttons -->
@@ -104,17 +144,16 @@
 
             <!-- Custom Size Input -->
             <div class="custom-target-row">
-              <label for="targetInput"><strong>Custom Limit:</strong></label>
-              <input type="number" id="targetInput" class="size-input" value="8" min="0.01" step="0.1">
-              <select id="targetUnit" class="unit-select">
+              <label for="targetInput"><strong>Custom Target:</strong></label>
+              <input type="number" id="targetInput" class="size-input" value="8" min="0.01" step="0.1" aria-label="Custom target size number">
+              <select id="targetUnit" class="unit-select" aria-label="Custom target size unit">
                 <option value="MB" selected>MB</option>
                 <option value="KB">KB</option>
               </select>
-              <span class="guarantee-badge" id="targetGuaranteeText">✓ Maximum Target: 8.00 MB</span>
             </div>
 
             <!-- Optional Collapsible Settings -->
-            <div class="collapsible-toggle" id="toggleMoreSettings">
+            <div class="collapsible-toggle" id="toggleMoreSettings" role="button" tabindex="0">
               <span id="moreSettingsIcon">▶</span>
               <span>Advanced Options (Format, Resolution, Audio)</span>
             </div>
@@ -160,7 +199,7 @@
           </button>
 
           <!-- Progress Bar -->
-          <div class="progress-panel" id="progressPanel">
+          <div class="progress-panel" id="progressPanel" aria-live="polite">
             <div class="progress-header">
               <span id="progressMessage">Compressing media...</span>
               <span id="progressPercent">0%</span>
@@ -173,8 +212,8 @@
           <!-- Results Card -->
           <div class="results-card" id="resultsCard">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-              <h3 style="color: #2e7d32; font-size: 16px;">✓ Compression Complete!</h3>
-              <span class="guarantee-badge" id="savingsBadge">-0%</span>
+              <h3 style="color: #2e7d32; font-size: 16px;">✓ Compression Complete</h3>
+              <span class="savings-badge" id="savingsBadge">-0%</span>
             </div>
 
             <div class="results-grid">
@@ -195,10 +234,10 @@
               💾 Download Compressed File
             </button>
           </div>
-        </div>
+        </section>
 
         <!-- Tab 2: Batch Queue -->
-        <div class="tab-content" id="tabBatch">
+        <section class="tab-content" id="tabBatch" role="tabpanel">
           <div class="section-box" style="margin-top: 0;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
               <div style="display: flex; gap: 8px;">
@@ -212,44 +251,45 @@
               </div>
             </div>
 
-            <table class="batch-table">
-              <thead>
-                <tr>
-                  <th>File</th>
-                  <th>Original</th>
-                  <th>Target</th>
-                  <th>Status</th>
-                  <th>Compressed</th>
-                  <th>Save</th>
-                </tr>
-              </thead>
-              <tbody id="batchTableBody">
-                <tr>
-                  <td colspan="6" style="text-align: center; color: #777; padding: 20px;">
-                    No files added yet. Click "Add Files" to batch compress multiple items.
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+            <div class="table-responsive">
+              <table class="batch-table">
+                <thead>
+                  <tr>
+                    <th>File</th>
+                    <th>Original</th>
+                    <th>Target</th>
+                    <th>Status</th>
+                    <th>Compressed</th>
+                    <th>Save</th>
+                  </tr>
+                </thead>
+                <tbody id="batchTableBody">
+                  <tr>
+                    <td colspan="6" style="text-align: center; color: #777; padding: 20px;">
+                      No files added yet. Click "Add Files" to batch compress multiple items.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
+        </section>
 
         <!-- Tab 3: Activity Log -->
-        <div class="tab-content" id="tabLog">
-          <div class="terminal-view" id="terminalLog">MediaShrink Client-Side Engine Initialized.
-Target size enforcement: Active (Hard limit).
-Ready for media input...</div>
+        <section class="tab-content" id="tabLog" role="tabpanel">
+          <div class="terminal-view" id="terminalLog">MediaShrink Engine Initialized.
+Ready for media compression.</div>
           <button class="preset-chip" id="btnClearTerminal" style="margin-top: 8px; padding: 6px 12px;">Clear Log</button>
-        </div>
+        </section>
 
       </div>
 
       <!-- Status Bar -->
-      <div class="window-statusbar">
+      <footer class="window-statusbar">
         <span id="statusLabel">Ready</span>
         <span>100% Private (Runs locally in browser)</span>
-      </div>
-    </div>
+      </footer>
+    </main>
   </div>
 
   <script type="module" src="./src/main.js"></script>
