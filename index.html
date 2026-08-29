@@ -78,7 +78,7 @@
 
     <!-- Main Window -->
     <main class="app-window">
-      <!-- Title Bar (Roomier, No brackets) -->
+      <!-- Title Bar -->
       <header class="window-titlebar">
         <div class="title-left">
           <span>🗜️</span>
@@ -236,9 +236,76 @@
           </div>
         </section>
 
-        <!-- Tab 2: Batch Queue -->
+        <!-- Tab 2: Batch Queue (With Dedicated Batch Settings) -->
         <section class="tab-content" id="tabBatch" role="tabpanel">
+          
+          <!-- Batch Target Size & Settings Panel -->
           <div class="section-box" style="margin-top: 0;">
+            <div class="section-title">
+              <span>🎯</span>
+              <span>Batch Target File Size (Applied to all queue files):</span>
+            </div>
+
+            <div class="preset-grid" id="batchPresetGrid">
+              <button type="button" class="preset-chip" data-size="500" data-unit="KB">500 KB</button>
+              <button type="button" class="preset-chip" data-size="1" data-unit="MB">1 MB</button>
+              <button type="button" class="preset-chip" data-size="2" data-unit="MB">2 MB</button>
+              <button type="button" class="preset-chip active" data-size="8" data-unit="MB">8 MB (Discord)</button>
+              <button type="button" class="preset-chip" data-size="25" data-unit="MB">25 MB</button>
+              <button type="button" class="preset-chip" data-size="50" data-unit="MB">50 MB</button>
+            </div>
+
+            <div class="custom-target-row">
+              <label for="batchTargetInput"><strong>Custom Target:</strong></label>
+              <input type="number" id="batchTargetInput" class="size-input" value="8" min="0.01" step="0.1" aria-label="Batch target size">
+              <select id="batchTargetUnit" class="unit-select" aria-label="Batch target size unit">
+                <option value="MB" selected>MB</option>
+                <option value="KB">KB</option>
+              </select>
+            </div>
+
+            <!-- Batch Advanced Options -->
+            <div class="collapsible-toggle" id="toggleBatchSettings" role="button" tabindex="0">
+              <span id="batchSettingsIcon">▶</span>
+              <span>Batch Options (Format, Resolution, Audio)</span>
+            </div>
+
+            <div class="collapsible-content" id="batchSettingsContent">
+              <div class="setting-item">
+                <label for="batchFormatSelect">Output Format:</label>
+                <select id="batchFormatSelect">
+                  <option value="auto" selected>Auto (Optimal for each file)</option>
+                  <option value="mp4">Video: MP4 (H.264 / AAC)</option>
+                  <option value="webm">Video: WebM</option>
+                  <option value="image/webp">Image: WebP</option>
+                  <option value="image/jpeg">Image: JPEG</option>
+                </select>
+              </div>
+
+              <div class="setting-item">
+                <label for="batchResSelect">Resolution Limit:</label>
+                <select id="batchResSelect">
+                  <option value="auto" selected>Auto (Smart Scale)</option>
+                  <option value="1920">1080p</option>
+                  <option value="1280">720p</option>
+                  <option value="854">480p</option>
+                  <option value="640">360p</option>
+                  <option value="original">Original</option>
+                </select>
+              </div>
+
+              <div class="setting-item">
+                <label for="batchAudioSelect">Audio Track:</label>
+                <select id="batchAudioSelect">
+                  <option value="keep" selected>Include Audio</option>
+                  <option value="mute">Mute / Strip Audio (Saves Space)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Queue Control Bar & Table -->
+          <div class="section-box">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
               <div style="display: flex; gap: 8px;">
                 <button class="preset-chip" id="btnAddBatchFiles" style="padding: 8px 14px;">➕ Add Files</button>
@@ -248,6 +315,17 @@
               <div style="display: flex; gap: 8px;">
                 <button class="preset-chip active" id="btnStartBatch" style="padding: 8px 14px;" disabled>⚡ Compress All</button>
                 <button class="preset-chip" id="btnDownloadZip" style="padding: 8px 14px;" disabled>📦 Download ZIP</button>
+              </div>
+            </div>
+
+            <!-- Batch Progress Bar -->
+            <div class="progress-panel" id="batchProgressPanel" style="margin-bottom: 12px;">
+              <div class="progress-header">
+                <span id="batchProgressMessage">Processing batch...</span>
+                <span id="batchProgressPercent">0%</span>
+              </div>
+              <div class="progress-track">
+                <div class="progress-fill" id="batchProgressFill"></div>
               </div>
             </div>
 

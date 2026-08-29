@@ -9,7 +9,7 @@ let currentCompressedResult = null;
 let batchFiles = [];
 let isBusy = false;
 
-// DOM Elements
+// DOM Elements - Single
 const dropZone = document.getElementById('dropZone');
 const fileInput = document.getElementById('fileInput');
 const fileCard = document.getElementById('fileCard');
@@ -18,7 +18,7 @@ const selectedFileMeta = document.getElementById('selectedFileMeta');
 const fileIcon = document.getElementById('fileIcon');
 const btnClearFile = document.getElementById('btnClearFile');
 
-const presetChips = document.querySelectorAll('.preset-chip[data-size]');
+const presetChips = document.querySelectorAll('#tabSingle .preset-chip[data-size]');
 const targetInput = document.getElementById('targetInput');
 const targetUnit = document.getElementById('targetUnit');
 
@@ -52,13 +52,27 @@ const terminalLog = document.getElementById('terminalLog');
 const btnClearTerminal = document.getElementById('btnClearTerminal');
 const statusLabel = document.getElementById('statusLabel');
 
-// Batch Elements
+// DOM Elements - Batch
+const batchPresetChips = document.querySelectorAll('#batchPresetGrid .preset-chip[data-size]');
+const batchTargetInput = document.getElementById('batchTargetInput');
+const batchTargetUnit = document.getElementById('batchTargetUnit');
+const toggleBatchSettings = document.getElementById('toggleBatchSettings');
+const batchSettingsContent = document.getElementById('batchSettingsContent');
+const batchSettingsIcon = document.getElementById('batchSettingsIcon');
+const batchFormatSelect = document.getElementById('batchFormatSelect');
+const batchResSelect = document.getElementById('batchResSelect');
+const batchAudioSelect = document.getElementById('batchAudioSelect');
+
 const btnAddBatchFiles = document.getElementById('btnAddBatchFiles');
 const batchInput = document.getElementById('batchInput');
 const btnClearBatch = document.getElementById('btnClearBatch');
 const btnStartBatch = document.getElementById('btnStartBatch');
 const btnDownloadZip = document.getElementById('btnDownloadZip');
 const batchTableBody = document.getElementById('batchTableBody');
+const batchProgressPanel = document.getElementById('batchProgressPanel');
+const batchProgressFill = document.getElementById('batchProgressFill');
+const batchProgressMessage = document.getElementById('batchProgressMessage');
+const batchProgressPercent = document.getElementById('batchProgressPercent');
 
 function formatBytes(bytes, decimals = 2) {
   if (!bytes || bytes === 0) return '0 Bytes';
@@ -76,7 +90,7 @@ function logToTerminal(msg) {
   terminalLog.scrollTop = terminalLog.scrollHeight;
 }
 
-// Sound Sync
+// Sound UI
 function updateSoundUI() {
   const muted = sound.isMuted();
   soundIcon.textContent = muted ? '🔇' : '🔊';
@@ -105,7 +119,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
   });
 });
 
-// Preset Size Chips
+// Single Preset Size Chips
 presetChips.forEach(chip => {
   chip.addEventListener('click', () => {
     sound.playClick();
@@ -115,12 +129,31 @@ presetChips.forEach(chip => {
     targetUnit.value = chip.dataset.unit;
   });
 });
-
 targetInput.addEventListener('input', () => {
   presetChips.forEach(c => c.classList.remove('active'));
 });
 targetUnit.addEventListener('change', () => {
   presetChips.forEach(c => c.classList.remove('active'));
+});
+
+// Batch Preset Size Chips
+batchPresetChips.forEach(chip => {
+  chip.addEventListener('click', () => {
+    sound.playClick();
+    batchPresetChips.forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    batchTargetInput.value = chip.dataset.size;
+    batchTargetUnit.value = chip.dataset.unit;
+    renderBatch();
+  });
+});
+batchTargetInput.addEventListener('input', () => {
+  batchPresetChips.forEach(c => c.classList.remove('active'));
+  renderBatch();
+});
+batchTargetUnit.addEventListener('change', () => {
+  batchPresetChips.forEach(c => c.classList.remove('active'));
+  renderBatch();
 });
 
 // Toggle Advanced Options
@@ -130,7 +163,13 @@ toggleMoreSettings.addEventListener('click', () => {
   moreSettingsIcon.textContent = isOpen ? '▼' : '▶';
 });
 
-// Dropzone & File Selection
+toggleBatchSettings.addEventListener('click', () => {
+  sound.playClick();
+  const isOpen = batchSettingsContent.classList.toggle('open');
+  batchSettingsIcon.textContent = isOpen ? '▼' : '▶';
+});
+
+// Single Dropzone
 dropZone.addEventListener('click', () => fileInput.click());
 dropZone.addEventListener('keydown', (e) => {
   if (e.key === 'Enter' || e.key === ' ') {
@@ -138,13 +177,11 @@ dropZone.addEventListener('keydown', (e) => {
     fileInput.click();
   }
 });
-
 fileInput.addEventListener('change', (e) => {
   if (e.target.files && e.target.files[0]) {
     onFileChosen(e.target.files[0]);
   }
 });
-
 dropZone.addEventListener('dragover', (e) => {
   e.preventDefault();
   dropZone.classList.add('dragover');
@@ -172,7 +209,6 @@ function onFileChosen(file) {
 
   selectedFileMeta.textContent = `Size: ${formatBytes(file.size)} • Type: ${isVideo ? 'Video' : 'Image'}`;
 
-  // Populate smart formats
   if (isVideo) {
     formatSelect.innerHTML = `
       <option value="mp4" selected>Video: MP4 (H.264 / AAC)</option>
@@ -205,7 +241,7 @@ btnClearFile.addEventListener('click', (e) => {
   statusLabel.textContent = 'Ready';
 });
 
-// Compress Action
+// Single Compress Action
 btnCompress.addEventListener('click', async () => {
   if (!selectedFile || isBusy) return;
   isBusy = true;
@@ -363,6 +399,7 @@ btnClearBatch.addEventListener('click', () => {
   renderBatch();
   btnStartBatch.disabled = true;
   btnDownloadZip.disabled = true;
+  batchProgressPanel.style.display = 'none';
 });
 
 function renderBatch() {
@@ -377,8 +414,8 @@ function renderBatch() {
     return;
   }
 
-  const val = parseFloat(targetInput.value);
-  const unit = targetUnit.value;
+  const val = parseFloat(batchTargetInput.value);
+  const unit = batchTargetUnit.value;
   const targetLabel = !isNaN(val) && val > 0 ? `${val} ${unit}` : 'Auto';
 
   batchTableBody.innerHTML = batchFiles.map(item => `
@@ -408,14 +445,26 @@ btnStartBatch.addEventListener('click', async () => {
   sound.playClick();
   btnStartBatch.disabled = true;
 
-  const val = parseFloat(targetInput.value);
-  const unit = targetUnit.value;
+  batchProgressPanel.style.display = 'block';
+  batchProgressFill.style.width = '0%';
+  batchProgressPercent.textContent = '0%';
+
+  const val = parseFloat(batchTargetInput.value);
+  const unit = batchTargetUnit.value;
   const targetBytes = (!isNaN(val) && val > 0) ? (unit === 'MB' ? val * 1024 * 1024 : val * 1024) : null;
 
+  const total = batchFiles.length;
+  let count = 0;
+
   for (const item of batchFiles) {
-    if (item.status === 'Complete') continue;
+    if (item.status === 'Complete') {
+      count++;
+      continue;
+    }
     item.status = 'Processing';
     renderBatch();
+
+    batchProgressMessage.textContent = `Processing file ${count + 1} of ${total}: ${item.file.name}...`;
 
     const isVideo = item.file.type.startsWith('video/') || /\.(mp4|webm|mov|mkv)$/i.test(item.file.name);
     try {
@@ -423,14 +472,15 @@ btnStartBatch.addEventListener('click', async () => {
       if (isVideo) {
         res = await compressVideo(item.file, {
           targetSizeBytes: targetBytes,
-          outputFormat: 'mp4',
-          removeAudio: audioSelect.value === 'mute',
-          resolutionOverride: resSelect.value
+          outputFormat: batchFormatSelect.value === 'auto' ? 'mp4' : batchFormatSelect.value,
+          removeAudio: batchAudioSelect.value === 'mute',
+          resolutionOverride: batchResSelect.value
         });
       } else {
         res = await compressImage(item.file, {
           targetSizeBytes: targetBytes,
-          outputFormat: 'image/webp'
+          outputFormat: batchFormatSelect.value === 'auto' ? 'image/webp' : batchFormatSelect.value,
+          maxWidth: batchResSelect.value !== 'original' && batchResSelect.value !== 'auto' ? parseInt(batchResSelect.value) : null
         });
       }
       item.compressedBlob = res.blob;
@@ -440,10 +490,15 @@ btnStartBatch.addEventListener('click', async () => {
       console.error(e);
       item.status = 'Failed';
     }
+    count++;
+    const overallPct = Math.round((count / total) * 100);
+    batchProgressFill.style.width = `${overallPct}%`;
+    batchProgressPercent.textContent = `${overallPct}%`;
     renderBatch();
   }
 
   sound.playSuccess();
+  batchProgressMessage.textContent = 'Batch compression complete!';
   isBusy = false;
   btnDownloadZip.disabled = false;
 });
