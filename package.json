@@ -25,6 +25,6 @@
     "jszip": "^3.10.1"
   },
   "devDependencies": {
-    "vite": "^5.4.14"
+    "vite": "^8.2.2"
   }
 }
