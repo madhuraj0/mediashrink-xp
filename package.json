@@ -1,0 +1,30 @@
+{
+  "name": "mediashrink-xp",
+  "version": "1.0.0",
+  "description": "Retro Windows XP style 100% client-side image and video compressor & converter to hit exact target file sizes",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "keywords": [
+    "video-compressor",
+    "image-compressor",
+    "target-size",
+    "ffmpeg-wasm",
+    "windows-xp",
+    "client-side",
+    "github-pages"
+  ],
+  "author": "Madhuraj",
+  "license": "MIT",
+  "dependencies": {
+    "@ffmpeg/ffmpeg": "^0.12.10",
+    "@ffmpeg/util": "^0.12.1",
+    "jszip": "^3.10.1"
+  },
+  "devDependencies": {
+    "vite": "^5.4.14"
+  }
+}
