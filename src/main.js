@@ -3,68 +3,64 @@ import { compressImage } from './imageProcessor.js';
 import { compressVideo } from './videoProcessor.js';
 import JSZip from 'jszip';
 
-// State variables
-let currentFile = null;
-let compressedResult = null;
-let batchQueue = [];
-let isProcessing = false;
+// State
+let selectedFile = null;
+let currentCompressedResult = null;
+let batchFiles = [];
+let isBusy = false;
 
 // DOM Elements
 const dropZone = document.getElementById('dropZone');
 const fileInput = document.getElementById('fileInput');
-const fileInfoBox = document.getElementById('fileInfoBox');
-const infoFileName = document.getElementById('infoFileName');
-const infoFileSize = document.getElementById('infoFileSize');
-const infoFileType = document.getElementById('infoFileType');
-const infoDurationWrap = document.getElementById('infoDurationWrap');
-const infoDuration = document.getElementById('infoDuration');
+const fileCard = document.getElementById('fileCard');
+const selectedFileName = document.getElementById('selectedFileName');
+const selectedFileMeta = document.getElementById('selectedFileMeta');
+const fileIcon = document.getElementById('fileIcon');
+const btnClearFile = document.getElementById('btnClearFile');
 
-const presetBtns = document.querySelectorAll('.preset-btn');
-const targetSizeVal = document.getElementById('targetSizeVal');
-const targetSizeUnit = document.getElementById('targetSizeUnit');
-const targetCalculatedNote = document.getElementById('targetCalculatedNote');
+const presetChips = document.querySelectorAll('.preset-chip[data-size]');
+const targetInput = document.getElementById('targetInput');
+const targetUnit = document.getElementById('targetUnit');
+const targetGuaranteeText = document.getElementById('targetGuaranteeText');
 
+const toggleMoreSettings = document.getElementById('toggleMoreSettings');
+const moreSettingsContent = document.getElementById('moreSettingsContent');
+const moreSettingsIcon = document.getElementById('moreSettingsIcon');
 const formatSelect = document.getElementById('formatSelect');
-const resolutionSelect = document.getElementById('resolutionSelect');
+const resSelect = document.getElementById('resSelect');
 const audioSelect = document.getElementById('audioSelect');
-const fpsSelect = document.getElementById('fpsSelect');
-const audioOptionWrap = document.getElementById('audioOptionWrap');
-const fpsOptionWrap = document.getElementById('fpsOptionWrap');
+const audioSettingWrap = document.getElementById('audioSettingWrap');
 
-const btnProcess = document.getElementById('btnProcess');
-const progressContainer = document.getElementById('progressContainer');
-const progressBar = document.getElementById('progressBar');
-const progressStatusLabel = document.getElementById('progressStatusLabel');
-const progressPctLabel = document.getElementById('progressPctLabel');
+const btnCompress = document.getElementById('btnCompress');
+const progressPanel = document.getElementById('progressPanel');
+const progressFill = document.getElementById('progressFill');
+const progressMessage = document.getElementById('progressMessage');
+const progressPercent = document.getElementById('progressPercent');
 
-const comparisonPanel = document.getElementById('comparisonPanel');
-const origPreviewContainer = document.getElementById('origPreviewContainer');
-const compressedPreviewContainer = document.getElementById('compressedPreviewContainer');
-const origSizeLabel = document.getElementById('origSizeLabel');
-const origFormatLabel = document.getElementById('origFormatLabel');
-const compSizeLabel = document.getElementById('compSizeLabel');
-const compFormatLabel = document.getElementById('compFormatLabel');
-const badgeSavings = document.getElementById('badgeSavings');
+const resultsCard = document.getElementById('resultsCard');
+const resOrigSize = document.getElementById('resOrigSize');
+const resCompSize = document.getElementById('resCompSize');
+const savingsBadge = document.getElementById('savingsBadge');
+const origPreview = document.getElementById('origPreview');
+const compPreview = document.getElementById('compPreview');
 const btnDownload = document.getElementById('btnDownload');
-const tbBtnSave = document.getElementById('tbBtnSave');
 
-const cmdLogOutput = document.getElementById('cmdLogOutput');
-const statusMessage = document.getElementById('statusMessage');
+const btnToggleSound = document.getElementById('btnToggleSound');
+const soundIcon = document.getElementById('soundIcon');
+const soundLabel = document.getElementById('soundLabel');
 
-// Sound toggles
-const soundStatusText = document.getElementById('soundStatusText');
-const tbBtnSound = document.getElementById('tbBtnSound');
-const traySoundIcon = document.getElementById('traySoundIcon');
+const terminalLog = document.getElementById('terminalLog');
+const btnClearTerminal = document.getElementById('btnClearTerminal');
+const statusLabel = document.getElementById('statusLabel');
 
-// Batch elements
-const btnBatchAdd = document.getElementById('btnBatchAdd');
-const batchFileInput = document.getElementById('batchFileInput');
-const btnBatchClear = document.getElementById('btnBatchClear');
-const btnBatchStart = document.getElementById('btnBatchStart');
-const btnBatchZip = document.getElementById('btnBatchZip');
+// Batch Elements
+const btnAddBatchFiles = document.getElementById('btnAddBatchFiles');
+const batchInput = document.getElementById('batchInput');
+const btnClearBatch = document.getElementById('btnClearBatch');
+const btnStartBatch = document.getElementById('btnStartBatch');
+const btnDownloadZip = document.getElementById('btnDownloadZip');
 const batchTableBody = document.getElementById('batchTableBody');
 
-// Utility to format bytes
 function formatBytes(bytes, decimals = 2) {
   if (!bytes || bytes === 0) return '0 Bytes';
   const k = 1024;
@@ -74,143 +70,82 @@ function formatBytes(bytes, decimals = 2) {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
 }
 
-// Log to XP Terminal
-function appendLog(msg) {
-  if (!cmdLogOutput) return;
-  const timestamp = new Date().toLocaleTimeString();
-  cmdLogOutput.textContent += `\n[${timestamp}] ${msg}`;
-  cmdLogOutput.scrollTop = cmdLogOutput.scrollHeight;
+function logToTerminal(msg) {
+  if (!terminalLog) return;
+  const time = new Date().toLocaleTimeString();
+  terminalLog.textContent += `\n[${time}] ${msg}`;
+  terminalLog.scrollTop = terminalLog.scrollHeight;
 }
 
-// Update Target Size Note
-function updateTargetSizeNote() {
-  const val = parseFloat(targetSizeVal.value);
-  const unit = targetSizeUnit.value;
+function updateGuaranteeText() {
+  const val = parseFloat(targetInput.value);
+  const unit = targetUnit.value;
   if (isNaN(val) || val <= 0) {
-    targetCalculatedNote.textContent = 'Auto / Unconstrained';
+    targetGuaranteeText.textContent = 'Auto / Unconstrained';
     return;
   }
   const bytes = unit === 'MB' ? val * 1024 * 1024 : val * 1024;
-  targetCalculatedNote.textContent = `Target: ${formatBytes(bytes)}`;
+  targetGuaranteeText.textContent = `✓ Guaranteed Max: ${formatBytes(bytes)}`;
 }
 
-// Sound state sync
-function syncSoundUI() {
+// Sound Sync
+function updateSoundUI() {
   const muted = sound.isMuted();
-  soundStatusText.textContent = muted ? 'MUTED' : 'ON';
-  tbBtnSound.textContent = muted ? '🔇 Retro Sound: OFF' : '🔊 Retro Sound: ON';
-  traySoundIcon.textContent = muted ? '🔇' : '🔊';
+  soundIcon.textContent = muted ? '🔇' : '🔊';
+  soundLabel.textContent = muted ? 'Sound OFF' : 'Sound ON';
 }
 
-// Setup Tab Navigation
-document.querySelectorAll('.xp-tab').forEach(tab => {
-  tab.addEventListener('click', () => {
-    sound.playClick();
-    document.querySelectorAll('.xp-tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-
-    tab.classList.add('active');
-    const targetPaneId = tab.dataset.tab;
-    const pane = document.getElementById(targetPaneId);
-    if (pane) pane.classList.add('active');
-  });
+btnToggleSound.addEventListener('click', () => {
+  sound.toggleMute();
+  updateSoundUI();
+  if (!sound.isMuted()) sound.playDing();
 });
 
-// Setup Target Size Presets
-presetBtns.forEach(btn => {
+// Tab Switching
+document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     sound.playClick();
-    presetBtns.forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
     btn.classList.add('active');
-
-    const size = btn.dataset.size;
-    const unit = btn.dataset.unit;
-    if (size === 'custom') {
-      targetSizeVal.focus();
-    } else {
-      targetSizeVal.value = size;
-      targetSizeUnit.value = unit;
-    }
-    updateTargetSizeNote();
+    const target = document.getElementById(btn.dataset.tab);
+    if (target) target.classList.add('active');
   });
 });
 
-targetSizeVal.addEventListener('input', () => {
-  presetBtns.forEach(b => b.classList.remove('active'));
-  updateTargetSizeNote();
+// Preset Size Chips
+presetChips.forEach(chip => {
+  chip.addEventListener('click', () => {
+    sound.playClick();
+    presetChips.forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    targetInput.value = chip.dataset.size;
+    targetUnit.value = chip.dataset.unit;
+    updateGuaranteeText();
+  });
 });
-targetSizeUnit.addEventListener('change', updateTargetSizeNote);
 
-// Handle Media Selection
-function handleFileSelected(file) {
-  if (!file) return;
+targetInput.addEventListener('input', () => {
+  presetChips.forEach(c => c.classList.remove('active'));
+  updateGuaranteeText();
+});
+targetUnit.addEventListener('change', () => {
+  presetChips.forEach(c => c.classList.remove('active'));
+  updateGuaranteeText();
+});
+
+// Toggle Advanced Options
+toggleMoreSettings.addEventListener('click', () => {
   sound.playClick();
-  currentFile = file;
-  compressedResult = null;
+  const isOpen = moreSettingsContent.classList.toggle('open');
+  moreSettingsIcon.textContent = isOpen ? '▼' : '▶';
+});
 
-  fileInfoBox.style.display = 'block';
-  infoFileName.textContent = file.name;
-  infoFileSize.textContent = formatBytes(file.size);
-  const isVideo = file.type.startsWith('video/') || /\.(mp4|webm|mov|mkv|avi|m4v|flv)$/i.test(file.name);
-  const isImage = file.type.startsWith('image/') || /\.(jpg|jpeg|png|webp|gif|bmp|avif|svg)$/i.test(file.name);
-
-  infoFileType.textContent = isVideo ? `Video (${file.type || 'video'})` : isImage ? `Image (${file.type || 'image'})` : 'Media';
-
-  // Toggle video specific options
-  audioOptionWrap.style.display = isVideo ? 'flex' : 'none';
-  fpsOptionWrap.style.display = isVideo ? 'flex' : 'none';
-
-  // Populate Format Dropdown smartly
-  if (isVideo) {
-    formatSelect.innerHTML = `
-      <option value="mp4" selected>Video: MP4 (H.264 / AAC - Universal)</option>
-      <option value="webm">Video: WebM (VP8 / Vorbis)</option>
-    `;
-    infoDurationWrap.style.display = 'block';
-    const video = document.createElement('video');
-    video.preload = 'metadata';
-    video.src = URL.createObjectURL(file);
-    video.onloadedmetadata = () => {
-      infoDuration.textContent = `${video.duration.toFixed(1)} seconds (${video.videoWidth}x${video.videoHeight})`;
-      URL.revokeObjectURL(video.src);
-    };
-  } else {
-    formatSelect.innerHTML = `
-      <option value="image/webp" selected>Image: WebP (Best Compression)</option>
-      <option value="image/jpeg">Image: JPEG</option>
-      <option value="image/png">Image: PNG</option>
-      <option value="original">Original Format</option>
-    `;
-    infoDurationWrap.style.display = 'none';
-  }
-
-  // Setup Original Preview
-  origPreviewContainer.innerHTML = '';
-  if (isImage) {
-    const img = document.createElement('img');
-    img.src = URL.createObjectURL(file);
-    origPreviewContainer.appendChild(img);
-  } else if (isVideo) {
-    const vid = document.createElement('video');
-    vid.src = URL.createObjectURL(file);
-    vid.controls = true;
-    vid.muted = true;
-    origPreviewContainer.appendChild(vid);
-  }
-
-  origSizeLabel.textContent = formatBytes(file.size);
-  origFormatLabel.textContent = file.type || file.name.split('.').pop()?.toUpperCase();
-
-  btnProcess.disabled = false;
-  statusMessage.textContent = `Loaded ${file.name} (${formatBytes(file.size)})`;
-  appendLog(`Loaded file: ${file.name}, Size: ${formatBytes(file.size)}, MIME: ${file.type}`);
-}
-
-// Drag & Drop handlers
+// Dropzone & File Selection
 dropZone.addEventListener('click', () => fileInput.click());
 fileInput.addEventListener('change', (e) => {
   if (e.target.files && e.target.files[0]) {
-    handleFileSelected(e.target.files[0]);
+    onFileChosen(e.target.files[0]);
   }
 });
 
@@ -223,112 +158,166 @@ dropZone.addEventListener('drop', (e) => {
   e.preventDefault();
   dropZone.classList.remove('dragover');
   if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-    handleFileSelected(e.dataTransfer.files[0]);
+    onFileChosen(e.dataTransfer.files[0]);
   }
 });
 
-// Process File Button Handler
-btnProcess.addEventListener('click', async () => {
-  if (!currentFile || isProcessing) return;
-  isProcessing = true;
+function onFileChosen(file) {
+  sound.playClick();
+  selectedFile = file;
+  currentCompressedResult = null;
+
+  fileCard.style.display = 'flex';
+  selectedFileName.textContent = file.name;
+  
+  const isVideo = file.type.startsWith('video/') || /\.(mp4|webm|mov|mkv|avi|m4v)$/i.test(file.name);
+  fileIcon.textContent = isVideo ? '🎬' : '🖼️';
+  audioSettingWrap.style.display = isVideo ? 'flex' : 'none';
+
+  selectedFileMeta.textContent = `Size: ${formatBytes(file.size)} • Type: ${isVideo ? 'Video' : 'Image'}`;
+
+  // Populate smart formats
+  if (isVideo) {
+    formatSelect.innerHTML = `
+      <option value="mp4" selected>Video: MP4 (H.264 / AAC)</option>
+      <option value="webm">Video: WebM</option>
+    `;
+  } else {
+    formatSelect.innerHTML = `
+      <option value="image/webp" selected>Image: WebP (Optimal)</option>
+      <option value="image/jpeg">Image: JPEG</option>
+      <option value="image/png">Image: PNG</option>
+      <option value="original">Original Format</option>
+    `;
+  }
+
+  btnCompress.disabled = false;
+  resultsCard.classList.remove('visible');
+  statusLabel.textContent = `Selected: ${file.name} (${formatBytes(file.size)})`;
+  logToTerminal(`File selected: ${file.name} (${formatBytes(file.size)})`);
+}
+
+btnClearFile.addEventListener('click', (e) => {
+  e.stopPropagation();
+  sound.playClick();
+  selectedFile = null;
+  currentCompressedResult = null;
+  fileCard.style.display = 'none';
+  btnCompress.disabled = true;
+  resultsCard.classList.remove('visible');
+  progressPanel.classList.remove('visible');
+  statusLabel.textContent = 'Ready';
+});
+
+// Compress Action
+btnCompress.addEventListener('click', async () => {
+  if (!selectedFile || isBusy) return;
+  isBusy = true;
   sound.playClick();
 
-  btnProcess.disabled = true;
-  progressContainer.classList.add('visible');
-  comparisonPanel.classList.remove('visible');
-  progressBar.style.width = '0%';
-  progressPctLabel.textContent = '0%';
-  progressStatusLabel.textContent = 'Initializing compression engine...';
-  statusMessage.textContent = 'Processing media...';
+  btnCompress.disabled = true;
+  progressPanel.classList.add('visible');
+  resultsCard.classList.remove('visible');
+  progressFill.style.width = '0%';
+  progressPercent.textContent = '0%';
+  progressMessage.textContent = 'Starting compression...';
+  statusLabel.textContent = 'Compressing...';
 
-  const val = parseFloat(targetSizeVal.value);
-  const unit = targetSizeUnit.value;
+  const val = parseFloat(targetInput.value);
+  const unit = targetUnit.value;
   const targetBytes = (!isNaN(val) && val > 0) ? (unit === 'MB' ? val * 1024 * 1024 : val * 1024) : null;
-
-  const isVideo = currentFile.type.startsWith('video/') || /\.(mp4|webm|mov|mkv|avi)$/i.test(currentFile.name);
+  const isVideo = selectedFile.type.startsWith('video/') || /\.(mp4|webm|mov|mkv|avi)$/i.test(selectedFile.name);
 
   try {
     let result = null;
     if (isVideo) {
       result = await compressVideo(
-        currentFile,
+        selectedFile,
         {
           targetSizeBytes: targetBytes,
           outputFormat: formatSelect.value,
           removeAudio: audioSelect.value === 'mute',
-          resolutionOverride: resolutionSelect.value,
-          fpsOverride: fpsSelect.value
+          resolutionOverride: resSelect.value
         },
-        ({ phase, progress, message }) => {
-          progressBar.style.width = `${Math.round(progress * 100)}%`;
-          progressPctLabel.textContent = `${Math.round(progress * 100)}%`;
-          progressStatusLabel.textContent = message;
+        ({ progress, message }) => {
+          const pct = Math.round(progress * 100);
+          progressFill.style.width = `${pct}%`;
+          progressPercent.textContent = `${pct}%`;
+          progressMessage.textContent = message;
         },
-        (logMsg) => appendLog(logMsg)
+        (logMsg) => logToTerminal(logMsg)
       );
     } else {
       result = await compressImage(
-        currentFile,
+        selectedFile,
         {
           targetSizeBytes: targetBytes,
           outputFormat: formatSelect.value,
-          maxWidth: resolutionSelect.value !== 'original' && resolutionSelect.value !== 'auto' ? parseInt(resolutionSelect.value) : null
+          maxWidth: resSelect.value !== 'original' && resSelect.value !== 'auto' ? parseInt(resSelect.value) : null
         },
         ({ progress, message }) => {
-          progressBar.style.width = `${Math.round(progress * 100)}%`;
-          progressPctLabel.textContent = `${Math.round(progress * 100)}%`;
-          progressStatusLabel.textContent = message;
+          const pct = Math.round(progress * 100);
+          progressFill.style.width = `${pct}%`;
+          progressPercent.textContent = `${pct}%`;
+          progressMessage.textContent = message;
         }
       );
     }
 
-    compressedResult = result;
-    renderComparisonResult(result, isVideo);
+    currentCompressedResult = result;
+    renderResults(result, isVideo);
     sound.playSuccess();
-    statusMessage.textContent = `Completed! Saved ${(100 - (result.size / result.originalSize) * 100).toFixed(1)}% space.`;
-    appendLog(`[Success] Output size: ${formatBytes(result.size)} (Target was: ${targetBytes ? formatBytes(targetBytes) : 'None'})`);
+    statusLabel.textContent = `Completed! Final size: ${formatBytes(result.size)}`;
+    logToTerminal(`[Complete] Final file size: ${formatBytes(result.size)} (Target was: ${targetBytes ? formatBytes(targetBytes) : 'None'})`);
   } catch (err) {
     console.error(err);
     sound.playError();
     alert(`Compression Error: ${err.message || err}`);
-    appendLog(`[ERROR] ${err.message || err}`);
-    statusMessage.textContent = 'Error during compression';
+    logToTerminal(`[ERROR] ${err.message || err}`);
+    statusLabel.textContent = 'Error during compression';
   } finally {
-    isProcessing = false;
-    btnProcess.disabled = false;
+    isBusy = false;
+    btnCompress.disabled = false;
   }
 });
 
-// Render Results
-function renderComparisonResult(result, isVideo) {
-  comparisonPanel.classList.add('visible');
-  compressedPreviewContainer.innerHTML = '';
+function renderResults(result, isVideo) {
+  resultsCard.classList.add('visible');
+  origPreview.innerHTML = '';
+  compPreview.innerHTML = '';
 
-  const outUrl = URL.createObjectURL(result.blob);
+  const origUrl = URL.createObjectURL(selectedFile);
+  const compUrl = URL.createObjectURL(result.blob);
 
   if (isVideo) {
-    const vid = document.createElement('video');
-    vid.src = outUrl;
-    vid.controls = true;
-    compressedPreviewContainer.appendChild(vid);
+    const v1 = document.createElement('video');
+    v1.src = origUrl;
+    v1.controls = true;
+    v1.muted = true;
+    origPreview.appendChild(v1);
+
+    const v2 = document.createElement('video');
+    v2.src = compUrl;
+    v2.controls = true;
+    compPreview.appendChild(v2);
   } else {
-    const img = document.createElement('img');
-    img.src = outUrl;
-    compressedPreviewContainer.appendChild(img);
+    const img1 = document.createElement('img');
+    img1.src = origUrl;
+    origPreview.appendChild(img1);
+
+    const img2 = document.createElement('img');
+    img2.src = compUrl;
+    compPreview.appendChild(img2);
   }
 
-  compSizeLabel.textContent = formatBytes(result.size);
-  compFormatLabel.textContent = result.format;
+  resOrigSize.textContent = formatBytes(selectedFile.size);
+  resCompSize.textContent = formatBytes(result.size);
 
-  const pctSaved = Math.max(0, ((result.originalSize - result.size) / result.originalSize) * 100).toFixed(1);
-  badgeSavings.textContent = `-${pctSaved}% Space Saved`;
+  const pctSaved = Math.max(0, ((selectedFile.size - result.size) / selectedFile.size) * 100).toFixed(1);
+  savingsBadge.textContent = `Saved ${pctSaved}% (${formatBytes(selectedFile.size - result.size)})`;
 
-  btnDownload.disabled = false;
-  tbBtnSave.disabled = false;
-
-  const downloadFilename = getDownloadName(currentFile.name, result.format);
+  const downloadFilename = getDownloadName(selectedFile.name, result.format);
   btnDownload.onclick = () => triggerDownload(result.blob, downloadFilename);
-  tbBtnSave.onclick = () => triggerDownload(result.blob, downloadFilename);
 }
 
 function getDownloadName(origName, mimeType) {
@@ -338,7 +327,7 @@ function getDownloadName(origName, mimeType) {
   else if (mimeType.includes('jpeg') || mimeType.includes('jpg')) ext = 'jpg';
   else if (mimeType.includes('png')) ext = 'png';
   else if (mimeType.includes('webm')) ext = 'webm';
-  return `${baseName}_shrinked.${ext}`;
+  return `${baseName}_compressed.${ext}`;
 }
 
 function triggerDownload(blob, filename) {
@@ -351,86 +340,86 @@ function triggerDownload(blob, filename) {
   document.body.removeChild(a);
 }
 
-// Batch Processing Logic
-btnBatchAdd.addEventListener('click', () => {
+// Batch Logic
+btnAddBatchFiles.addEventListener('click', () => {
   sound.playClick();
-  batchFileInput.click();
+  batchInput.click();
 });
 
-batchFileInput.addEventListener('change', (e) => {
+batchInput.addEventListener('change', (e) => {
   if (!e.target.files) return;
   Array.from(e.target.files).forEach(file => {
-    batchQueue.push({
+    batchFiles.push({
       id: Math.random().toString(36).substring(2, 9),
       file,
-      status: 'Ready',
+      status: 'Pending',
       compressedBlob: null,
       compressedSize: null
     });
   });
-  renderBatchTable();
-  btnBatchStart.disabled = batchQueue.length === 0;
+  renderBatch();
+  btnStartBatch.disabled = batchFiles.length === 0;
 });
 
-btnBatchClear.addEventListener('click', () => {
+btnClearBatch.addEventListener('click', () => {
   sound.playClick();
-  batchQueue = [];
-  renderBatchTable();
-  btnBatchStart.disabled = true;
-  btnBatchZip.disabled = true;
+  batchFiles = [];
+  renderBatch();
+  btnStartBatch.disabled = true;
+  btnDownloadZip.disabled = true;
 });
 
-function renderBatchTable() {
-  if (batchQueue.length === 0) {
+function renderBatch() {
+  if (batchFiles.length === 0) {
     batchTableBody.innerHTML = `
       <tr>
-        <td colspan="6" style="text-align: center; color: #666; padding: 16px;">
-          No files in batch queue. Click "Add Files to Queue" to begin.
+        <td colspan="6" style="text-align: center; color: #777; padding: 20px;">
+          No files added yet. Click "Add Files" to batch compress multiple items.
         </td>
       </tr>
     `;
     return;
   }
 
-  const val = parseFloat(targetSizeVal.value);
-  const unit = targetSizeUnit.value;
+  const val = parseFloat(targetInput.value);
+  const unit = targetUnit.value;
   const targetLabel = !isNaN(val) && val > 0 ? `${val} ${unit}` : 'Auto';
 
-  batchTableBody.innerHTML = batchQueue.map(item => `
+  batchTableBody.innerHTML = batchFiles.map(item => `
     <tr>
       <td><strong>${item.file.name}</strong></td>
       <td>${formatBytes(item.file.size)}</td>
       <td>${targetLabel}</td>
-      <td><span style="font-weight: bold; color: ${item.status === 'Complete' ? '#2e7d32' : item.status === 'Processing' ? '#0055ea' : '#333'}">${item.status}</span></td>
+      <td><span style="font-weight: bold; color: ${item.status === 'Complete' ? '#2e7d32' : item.status === 'Processing' ? '#0055ea' : '#555'}">${item.status}</span></td>
       <td>${item.compressedSize ? formatBytes(item.compressedSize) : '-'}</td>
       <td>
-        ${item.compressedBlob ? `<button class="xp-button" onclick="window.downloadBatchItem('${item.id}')">💾 Save</button>` : ''}
+        ${item.compressedBlob ? `<button class="preset-chip" style="padding: 4px 8px;" onclick="window.saveBatchItem('${item.id}')">💾 Save</button>` : '-'}
       </td>
     </tr>
   `).join('');
 }
 
-window.downloadBatchItem = (id) => {
-  const item = batchQueue.find(x => x.id === id);
+window.saveBatchItem = (id) => {
+  const item = batchFiles.find(x => x.id === id);
   if (item && item.compressedBlob) {
     triggerDownload(item.compressedBlob, getDownloadName(item.file.name, item.compressedBlob.type));
   }
 };
 
-btnBatchStart.addEventListener('click', async () => {
-  if (batchQueue.length === 0 || isProcessing) return;
-  isProcessing = true;
+btnStartBatch.addEventListener('click', async () => {
+  if (batchFiles.length === 0 || isBusy) return;
+  isBusy = true;
   sound.playClick();
-  btnBatchStart.disabled = true;
+  btnStartBatch.disabled = true;
 
-  const val = parseFloat(targetSizeVal.value);
-  const unit = targetSizeUnit.value;
+  const val = parseFloat(targetInput.value);
+  const unit = targetUnit.value;
   const targetBytes = (!isNaN(val) && val > 0) ? (unit === 'MB' ? val * 1024 * 1024 : val * 1024) : null;
 
-  for (const item of batchQueue) {
+  for (const item of batchFiles) {
     if (item.status === 'Complete') continue;
     item.status = 'Processing';
-    renderBatchTable();
+    renderBatch();
 
     const isVideo = item.file.type.startsWith('video/') || /\.(mp4|webm|mov|mkv)$/i.test(item.file.name);
     try {
@@ -440,7 +429,7 @@ btnBatchStart.addEventListener('click', async () => {
           targetSizeBytes: targetBytes,
           outputFormat: 'mp4',
           removeAudio: audioSelect.value === 'mute',
-          resolutionOverride: resolutionSelect.value
+          resolutionOverride: resSelect.value
         });
       } else {
         res = await compressImage(item.file, {
@@ -455,106 +444,31 @@ btnBatchStart.addEventListener('click', async () => {
       console.error(e);
       item.status = 'Failed';
     }
-    renderBatchTable();
+    renderBatch();
   }
 
   sound.playSuccess();
-  isProcessing = false;
-  btnBatchZip.disabled = false;
+  isBusy = false;
+  btnDownloadZip.disabled = false;
 });
 
-btnBatchZip.addEventListener('click', async () => {
+btnDownloadZip.addEventListener('click', async () => {
   sound.playClick();
   const zip = new JSZip();
-  batchQueue.forEach(item => {
+  batchFiles.forEach(item => {
     if (item.compressedBlob) {
-      const fn = getDownloadName(item.file.name, item.compressedBlob.type);
-      zip.file(fn, item.compressedBlob);
+      zip.file(getDownloadName(item.file.name, item.compressedBlob.type), item.compressedBlob);
     }
   });
-
   const content = await zip.generateAsync({ type: 'blob' });
   triggerDownload(content, 'MediaShrink_Batch.zip');
 });
 
-// Menu Bar & Toolbar handlers
-document.getElementById('tbBtnOpen').addEventListener('click', () => fileInput.click());
-document.getElementById('menuFileOpen').addEventListener('click', () => fileInput.click());
-document.getElementById('tbBtnStart').addEventListener('click', () => btnProcess.click());
-document.getElementById('tbBtnClear').addEventListener('click', () => {
+btnClearTerminal.addEventListener('click', () => {
   sound.playClick();
-  currentFile = null;
-  compressedResult = null;
-  fileInfoBox.style.display = 'none';
-  comparisonPanel.classList.remove('visible');
-  progressContainer.classList.remove('visible');
-  btnProcess.disabled = true;
-  btnDownload.disabled = true;
-  tbBtnSave.disabled = true;
-  statusMessage.textContent = 'Ready for media input';
+  terminalLog.textContent = 'Log buffer cleared.\n';
 });
 
-// Sound toggles
-function handleSoundToggle() {
-  sound.toggleMute();
-  syncSoundUI();
-  if (!sound.isMuted()) sound.playDing();
-}
-document.getElementById('menuSoundToggle').addEventListener('click', handleSoundToggle);
-tbBtnSound.addEventListener('click', handleSoundToggle);
-traySoundIcon.addEventListener('click', handleSoundToggle);
-
-document.getElementById('menuViewLog').addEventListener('click', () => {
-  document.querySelector('[data-tab="cmdTab"]').click();
-});
-document.getElementById('menuHelpAbout').addEventListener('click', () => {
-  document.querySelector('[data-tab="aboutTab"]').click();
-});
-document.getElementById('btnClearLogs').addEventListener('click', () => {
-  sound.playClick();
-  cmdLogOutput.textContent = 'C:\\MediaShrink> Log buffer cleared.\n';
-});
-
-// Desktop icons
-document.getElementById('dIconApp').addEventListener('click', () => {
-  sound.playClick();
-  document.getElementById('mainWindow').style.display = 'flex';
-});
-document.getElementById('dIconGitHub').addEventListener('click', () => {
-  sound.playClick();
-  window.open('https://github.com/madhuraj0/mediashrink-xp', '_blank');
-});
-document.getElementById('dIconTrash').addEventListener('click', () => {
-  sound.playDing();
-  alert('Recycle Bin is empty!');
-});
-
-// Window controls
-document.getElementById('winCloseBtn').addEventListener('click', () => {
-  sound.playClick();
-  document.getElementById('mainWindow').style.display = 'none';
-});
-document.getElementById('taskbarAppItem').addEventListener('click', () => {
-  const win = document.getElementById('mainWindow');
-  win.style.display = win.style.display === 'none' ? 'flex' : 'none';
-});
-
-// Update System Clock
-function updateClock() {
-  const now = new Date();
-  const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  document.getElementById('systemTime').textContent = timeStr;
-}
-setInterval(updateClock, 1000);
-updateClock();
-syncSoundUI();
-updateTargetSizeNote();
-
-// Play initial startup sound on first user gesture
-let hasStarted = false;
-window.addEventListener('click', () => {
-  if (!hasStarted) {
-    hasStarted = true;
-    sound.playStartupSound();
-  }
-}, { once: true });
+// Initialization
+updateSoundUI();
+updateGuaranteeText();

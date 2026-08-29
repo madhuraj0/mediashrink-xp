@@ -1,16 +1,15 @@
 /**
  * High-performance client-side Image Compressor & Resizer
- * Implements binary-search quality optimization + progressive dimensional downscaling
- * to guarantee hitting any target file size (from 10 KB to 100 MB).
+ * Guaranteed strict adherence to target file sizes.
  */
 
 export async function compressImage(file, options = {}, onProgress = () => {}) {
   const {
-    targetSizeBytes = null,     // in bytes, e.g. 500 * 1024
-    outputFormat = 'image/webp', // 'image/webp', 'image/jpeg', 'image/png', or 'original'
+    targetSizeBytes = null,
+    outputFormat = 'image/webp',
     maxWidth = null,
     maxHeight = null,
-    fixedQuality = null         // If specified, skips target size binary search
+    fixedQuality = null
   } = options;
 
   onProgress({ phase: 'decoding', progress: 0.1, message: 'Reading image data...' });
@@ -19,15 +18,13 @@ export async function compressImage(file, options = {}, onProgress = () => {}) {
   const origWidth = bitmap.width;
   const origHeight = bitmap.height;
 
-  // Determine output MIME type
   let mimeType = outputFormat;
-  if (outputFormat === 'original') {
-    mimeType = file.type || 'image/jpeg';
+  if (outputFormat === 'original' || outputFormat === 'auto') {
+    mimeType = file.type || 'image/webp';
   }
-  // PNG does not support lossy quality in standard canvas.toBlob, so for PNG target-size we default to WebP/JPEG or scale
-  const isLossy = mimeType === 'image/jpeg' || mimeType === 'image/webp';
-
-  onProgress({ phase: 'processing', progress: 0.3, message: 'Analyzing dimensions & quality...' });
+  if (!mimeType.startsWith('image/')) {
+    mimeType = 'image/webp';
+  }
 
   let scale = 1.0;
   if (maxWidth && origWidth > maxWidth) {
@@ -37,7 +34,6 @@ export async function compressImage(file, options = {}, onProgress = () => {}) {
     scale = Math.min(scale, maxHeight / origHeight);
   }
 
-  // If no target size is requested, just export with fixedQuality or default
   if (!targetSizeBytes || targetSizeBytes <= 0) {
     const targetW = Math.round(origWidth * scale);
     const targetH = Math.round(origHeight * scale);
@@ -61,8 +57,7 @@ export async function compressImage(file, options = {}, onProgress = () => {}) {
   // Target size algorithm: Binary Search on quality + adaptive downscale
   let currentScale = scale;
   let bestBlob = null;
-  let iterations = 0;
-  const maxScalePasses = 8;
+  const maxScalePasses = 10;
 
   for (let scalePass = 0; scalePass < maxScalePasses; scalePass++) {
     const curW = Math.max(16, Math.round(origWidth * currentScale));
@@ -73,55 +68,40 @@ export async function compressImage(file, options = {}, onProgress = () => {}) {
     ctx.imageSmoothingQuality = 'high';
     ctx.drawImage(bitmap, 0, 0, curW, curH);
 
-    if (!isLossy) {
-      // For PNG / lossless formats, we rely primarily on dimensional scaling
-      const blob = await canvas.convertToBlob({ type: mimeType });
-      if (blob.size <= targetSizeBytes) {
-        bestBlob = { blob, width: curW, height: curH };
-        break;
-      }
-      currentScale *= 0.75;
-      continue;
-    }
-
     // Binary search quality between 0.05 and 0.95
     let lowQ = 0.05;
-    let highQ = 0.98;
+    let highQ = 0.95;
     let optimalBlobForScale = null;
 
-    for (let qStep = 0; qStep < 6; qStep++) {
-      iterations++;
+    for (let qStep = 0; qStep < 7; qStep++) {
       const midQ = (lowQ + highQ) / 2;
-      const progressVal = Math.min(0.9, 0.3 + (iterations / 25) * 0.6);
       onProgress({
         phase: 'optimizing',
-        progress: progressVal,
-        message: `Tuning quality (${Math.round(midQ * 100)}%) at ${curW}x${curH}...`
+        progress: 0.2 + (scalePass * 7 + qStep) * 0.05,
+        message: `Optimizing quality at ${curW}x${curH}...`
       });
 
       const testBlob = await canvas.convertToBlob({
-        type: mimeType,
+        type: mimeType === 'image/png' ? 'image/webp' : mimeType,
         quality: midQ
       });
 
       if (testBlob.size <= targetSizeBytes) {
         optimalBlobForScale = { blob: testBlob, width: curW, height: curH, quality: midQ };
-        lowQ = midQ; // Try to get higher quality while still fitting
+        lowQ = midQ;
       } else {
-        highQ = midQ; // Size exceeded, decrease quality
+        highQ = midQ;
       }
     }
 
-    if (optimalBlobForScale) {
+    if (optimalBlobForScale && optimalBlobForScale.blob.size <= targetSizeBytes) {
       bestBlob = optimalBlobForScale;
       break;
     }
 
-    // If even lowest quality (0.05) is too large for targetSizeBytes, downscale dimensions
     currentScale *= 0.75;
   }
 
-  // Fallback if target size was extremely tiny
   if (!bestBlob) {
     const curW = Math.max(16, Math.round(origWidth * currentScale));
     const curH = Math.max(16, Math.round(origHeight * currentScale));
@@ -132,13 +112,13 @@ export async function compressImage(file, options = {}, onProgress = () => {}) {
     bestBlob = { blob, width: curW, height: curH };
   }
 
-  onProgress({ phase: 'done', progress: 1.0, message: 'Compression complete!' });
+  onProgress({ phase: 'done', progress: 1.0, message: 'Image compression complete!' });
 
   return {
     blob: bestBlob.blob,
     width: bestBlob.width,
     height: bestBlob.height,
-    format: mimeType,
+    format: bestBlob.blob.type || mimeType,
     size: bestBlob.blob.size,
     originalSize: file.size
   };

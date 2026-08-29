@@ -3,16 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MediaShrink XP - In-Browser Media Compressor & Converter</title>
+  <title>MediaShrink - Free In-Browser Video & Image Compressor</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🗜️</text></svg>">
   <script src="./coi-serviceworker.js"></script>
   <link rel="stylesheet" href="./src/style.css">
 </head>
 <body>
 
-  <!-- Desktop Landscape -->
-  <div class="desktop" id="desktop">
-    <!-- Bliss Rolling Hills Vector Background -->
+  <div class="desktop">
+    <!-- Rolling Hills Vector Backdrop -->
     <svg class="bliss-bg" viewBox="0 0 1440 900" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <linearGradient id="sky" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -31,261 +30,203 @@
         </linearGradient>
       </defs>
       <rect width="1440" height="900" fill="url(#sky)" />
-      <!-- Cloud Shapes -->
       <path d="M 200,180 Q 250,130 320,150 Q 380,110 440,160 Q 480,180 440,220 Q 350,230 220,210 Z" fill="#ffffff" opacity="0.6" />
       <path d="M 900,140 Q 960,90 1040,110 Q 1120,70 1190,120 Q 1240,150 1200,190 Q 1100,200 920,180 Z" fill="#ffffff" opacity="0.5" />
-      <!-- Rolling Hills -->
       <path d="M -100,900 L -100,600 Q 300,380 750,560 Q 1150,710 1550,450 L 1550,900 Z" fill="url(#hill1)" />
       <path d="M -100,900 L -100,680 Q 250,520 600,640 Q 1050,780 1550,580 L 1550,900 Z" fill="url(#hill2)" />
     </svg>
 
-    <!-- Desktop Icons -->
-    <div class="desktop-icons">
-      <div class="desktop-icon" id="dIconApp">
-        <div class="icon-img">🗜️</div>
-        <div class="icon-label">MediaShrink.exe</div>
-      </div>
-      <div class="desktop-icon" id="dIconTrash">
-        <div class="icon-img">🗑️</div>
-        <div class="icon-label">Recycle Bin</div>
-      </div>
-      <div class="desktop-icon" id="dIconGitHub">
-        <div class="icon-img">🌐</div>
-        <div class="icon-label">GitHub Repo</div>
-      </div>
-    </div>
-
-    <!-- Main Window: MediaShrink XP -->
-    <div class="xp-window" id="mainWindow">
-      <!-- Titlebar -->
+    <!-- Main Window -->
+    <div class="app-window">
+      <!-- Title Bar -->
       <div class="window-titlebar">
         <div class="title-left">
-          <span class="window-icon">🗜️</span>
-          <span>MediaShrink XP Professional - [Media Compressor & Converter]</span>
+          <span>🗜️</span>
+          <span>MediaShrink - [Target Size Media Compressor]</span>
         </div>
         <div class="window-controls">
-          <button class="win-btn btn-min" title="Minimize">_</button>
-          <button class="win-btn btn-max" title="Maximize">□</button>
-          <button class="win-btn btn-close" id="winCloseBtn" title="Close">✕</button>
+          <button class="sound-toggle-btn" id="btnToggleSound">
+            <span id="soundIcon">🔊</span>
+            <span id="soundLabel">Sound ON</span>
+          </button>
         </div>
       </div>
 
-      <!-- Menubar -->
-      <div class="window-menubar">
-        <div class="menu-item" id="menuFileOpen">File (<u>F</u>)</div>
-        <div class="menu-item" id="menuSoundToggle">Sound (<u>S</u>): <span id="soundStatusText">ON</span></div>
-        <div class="menu-item" id="menuViewLog">Logs (<u>L</u>)</div>
-        <div class="menu-item" id="menuHelpAbout">About (<u>A</u>)</div>
-      </div>
-
-      <!-- Toolbar -->
-      <div class="window-toolbar">
-        <button class="tool-btn" id="tbBtnOpen">📂 Open Media File</button>
-        <button class="tool-btn" id="tbBtnStart">⚡ Compress Now</button>
-        <div class="toolbar-separator"></div>
-        <button class="tool-btn" id="tbBtnSave" disabled>💾 Save Output</button>
-        <button class="tool-btn" id="tbBtnClear">🧹 Clear All</button>
-        <div class="toolbar-separator"></div>
-        <button class="tool-btn" id="tbBtnSound">🔊 Retro Sound: ON</button>
+      <!-- Navigation Tabs -->
+      <div class="window-tabs">
+        <button class="tab-btn active" data-tab="tabSingle">🗜️ Media Compressor</button>
+        <button class="tab-btn" data-tab="tabBatch">📑 Batch Queue</button>
+        <button class="tab-btn" data-tab="tabLog">💻 Activity Log</button>
       </div>
 
       <!-- Window Body -->
       <div class="window-body">
-        <!-- Tabs -->
-        <div class="xp-tabs">
-          <div class="xp-tab active" data-tab="singleTab">🗂️ Media Compressor</div>
-          <div class="xp-tab" data-tab="batchTab">📑 Batch Queue</div>
-          <div class="xp-tab" data-tab="cmdTab">💻 XP Command Prompt</div>
-          <div class="xp-tab" data-tab="aboutTab">ℹ️ About</div>
-        </div>
-
-        <!-- Tab 1: Single Media Compressor -->
-        <div class="tab-pane active" id="singleTab">
-          <!-- Drop Zone -->
-          <div class="dropzone-xp" id="dropZone">
+        
+        <!-- Tab 1: Single File Compressor -->
+        <div class="tab-content active" id="tabSingle">
+          
+          <!-- Dropzone -->
+          <div class="dropzone" id="dropZone">
             <input type="file" id="fileInput" accept="image/*,video/*" style="display: none;">
-            <div class="dropzone-icon" id="dropIcon">📁</div>
-            <div class="dropzone-title" id="dropTitle">Drag & Drop Any Image or Video Here</div>
-            <div class="dropzone-desc">Supports MP4, WebM, MOV, MKV, JPG, PNG, WebP, GIF, AVIF (100% Client-Side Private)</div>
+            <div class="dropzone-icon">📁</div>
+            <div class="dropzone-title">Click to browse or Drag & Drop any video or image</div>
+            <div class="dropzone-desc">Supports MP4, WebM, MOV, MKV, JPG, PNG, WebP, GIF • 100% Client-Side & Private</div>
           </div>
 
-          <!-- File Info Banner (Shown when file is selected) -->
-          <div class="xp-groupbox" id="fileInfoBox" style="display: none; margin-top: 10px;">
-            <legend>Selected Media Properties</legend>
-            <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
-              <div><strong>File:</strong> <span id="infoFileName">-</span></div>
-              <div><strong>Original Size:</strong> <span id="infoFileSize" style="color: #003399; font-weight: bold;">-</span></div>
-              <div><strong>Type:</strong> <span id="infoFileType">-</span></div>
-              <div id="infoDurationWrap" style="display: none;"><strong>Duration:</strong> <span id="infoDuration">-</span></div>
-            </div>
-          </div>
-
-          <!-- Target File Size Control -->
-          <div class="xp-groupbox" style="margin-top: 10px;">
-            <legend>Target File Size Settings</legend>
-            <div class="target-size-panel">
-              <div style="font-size: 11px; color: #444;">
-                Select a target file size (MediaShrink will dynamically calculate bitrates, quality, and resolution):
-              </div>
-              <div class="preset-buttons">
-                <button type="button" class="preset-btn" data-size="500" data-unit="KB">500 KB</button>
-                <button type="button" class="preset-btn" data-size="1" data-unit="MB">1 MB</button>
-                <button type="button" class="preset-btn" data-size="2" data-unit="MB">2 MB</button>
-                <button type="button" class="preset-btn active" data-size="8" data-unit="MB">8 MB (Discord Free)</button>
-                <button type="button" class="preset-btn" data-size="25" data-unit="MB">25 MB (Discord Nitro/Email)</button>
-                <button type="button" class="preset-btn" data-size="50" data-unit="MB">50 MB</button>
-                <button type="button" class="preset-btn" data-size="custom">Custom Size</button>
-              </div>
-
-              <div class="custom-size-row">
-                <label for="targetSizeVal"><strong>Custom Target Size:</strong></label>
-                <input type="number" id="targetSizeVal" value="8" min="0.05" step="0.1" style="width: 80px;">
-                <select id="targetSizeUnit" style="width: 60px;">
-                  <option value="MB" selected>MB</option>
-                  <option value="KB">KB</option>
-                </select>
-                <span id="targetCalculatedNote" style="color: #006600; font-weight: bold; margin-left: 8px;">Target: 8.00 MB</span>
+          <!-- Selected File Details (Appears on selection) -->
+          <div class="selected-file-card" id="fileCard" style="display: none;">
+            <div class="file-details">
+              <div class="file-icon" id="fileIcon">🎬</div>
+              <div>
+                <div class="file-name" id="selectedFileName">video.mp4</div>
+                <div class="file-meta" id="selectedFileMeta">Size: 3.20 MB • Duration: 12.4s</div>
               </div>
             </div>
+            <button class="preset-chip" id="btnClearFile" style="padding: 6px 12px; margin: 0;">✕ Clear</button>
           </div>
 
-          <!-- Advanced Options (Format, Resolution, Audio) -->
-          <div class="xp-groupbox">
-            <legend>Advanced Compression & Format Controls</legend>
-            <div class="options-grid">
-              <!-- Format Selector -->
-              <div class="option-item">
+          <!-- Target File Size Panel -->
+          <div class="section-box">
+            <div class="section-title">
+              <span>🎯</span>
+              <span>Target File Size Limit (Output will strictly fall under this size):</span>
+            </div>
+
+            <!-- Big Preset Buttons -->
+            <div class="preset-grid">
+              <button type="button" class="preset-chip" data-size="500" data-unit="KB">500 KB</button>
+              <button type="button" class="preset-chip" data-size="1" data-unit="MB">1 MB</button>
+              <button type="button" class="preset-chip" data-size="2" data-unit="MB">2 MB</button>
+              <button type="button" class="preset-chip active" data-size="8" data-unit="MB">8 MB (Discord)</button>
+              <button type="button" class="preset-chip" data-size="25" data-unit="MB">25 MB</button>
+              <button type="button" class="preset-chip" data-size="50" data-unit="MB">50 MB</button>
+            </div>
+
+            <!-- Custom Size Input -->
+            <div class="custom-target-row">
+              <label for="targetInput"><strong>Custom Limit:</strong></label>
+              <input type="number" id="targetInput" class="size-input" value="8" min="0.01" step="0.1">
+              <select id="targetUnit" class="unit-select">
+                <option value="MB" selected>MB</option>
+                <option value="KB">KB</option>
+              </select>
+              <span class="guarantee-badge" id="targetGuaranteeText">✓ Maximum Target: 8.00 MB</span>
+            </div>
+
+            <!-- Optional Collapsible Settings -->
+            <div class="collapsible-toggle" id="toggleMoreSettings">
+              <span id="moreSettingsIcon">▶</span>
+              <span>Advanced Options (Format, Resolution, Audio)</span>
+            </div>
+
+            <div class="collapsible-content" id="moreSettingsContent">
+              <div class="setting-item">
                 <label for="formatSelect">Output Format:</label>
                 <select id="formatSelect">
                   <option value="auto" selected>Auto (Optimal for type)</option>
-                  <option value="image/webp">Image: WebP (High Compression)</option>
+                  <option value="mp4">Video: MP4 (H.264/AAC)</option>
+                  <option value="webm">Video: WebM</option>
+                  <option value="image/webp">Image: WebP</option>
                   <option value="image/jpeg">Image: JPEG</option>
                   <option value="image/png">Image: PNG</option>
-                  <option value="mp4">Video: MP4 (H.264 / AAC)</option>
-                  <option value="webm">Video: WebM (VP8 / Vorbis)</option>
                 </select>
               </div>
 
-              <!-- Resolution Scaling -->
-              <div class="option-item">
-                <label for="resolutionSelect">Resolution / Scale:</label>
-                <select id="resolutionSelect">
-                  <option value="auto" selected>Auto (Smart Adaptive Scaling)</option>
-                  <option value="1920">1080p (Max 1920px)</option>
-                  <option value="1280">720p (Max 1280px)</option>
-                  <option value="854">480p (Max 854px)</option>
-                  <option value="640">360p (Max 640px)</option>
-                  <option value="original">Original Dimensions</option>
+              <div class="setting-item">
+                <label for="resSelect">Resolution Scaling:</label>
+                <select id="resSelect">
+                  <option value="auto" selected>Auto (Smart Scale for size)</option>
+                  <option value="1920">1080p</option>
+                  <option value="1280">720p</option>
+                  <option value="854">480p</option>
+                  <option value="640">360p</option>
+                  <option value="original">Original</option>
                 </select>
               </div>
 
-              <!-- Audio Handling for Videos -->
-              <div class="option-item" id="audioOptionWrap">
-                <label for="audioSelect">Audio Track (Videos):</label>
+              <div class="setting-item" id="audioSettingWrap">
+                <label for="audioSelect">Audio Track:</label>
                 <select id="audioSelect">
-                  <option value="keep" selected>Include Audio (Auto Bitrate)</option>
-                  <option value="mute">Mute / Strip Audio (Saves Max Size)</option>
-                </select>
-              </div>
-
-              <!-- Framerate -->
-              <div class="option-item" id="fpsOptionWrap">
-                <label for="fpsSelect">Framerate (Videos):</label>
-                <select id="fpsSelect">
-                  <option value="auto" selected>Auto (Preserve / Smart)</option>
-                  <option value="30">30 FPS</option>
-                  <option value="24">24 FPS</option>
-                  <option value="15">15 FPS (Ultra Low Size)</option>
+                  <option value="keep" selected>Include Audio</option>
+                  <option value="mute">Mute / Remove Audio (Saves Space)</option>
                 </select>
               </div>
             </div>
           </div>
 
-          <!-- Action Button Row -->
-          <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 10px;">
-            <button class="xp-button primary" id="btnProcess" style="font-size: 12px; padding: 7px 24px;" disabled>
-              ⚡ Start Compression Process
+          <!-- Big Main Action Button -->
+          <button class="btn-compress-main" id="btnCompress" disabled>
+            ⚡ Compress Media Now
+          </button>
+
+          <!-- Progress Bar -->
+          <div class="progress-panel" id="progressPanel">
+            <div class="progress-header">
+              <span id="progressMessage">Compressing media...</span>
+              <span id="progressPercent">0%</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill" id="progressFill"></div>
+            </div>
+          </div>
+
+          <!-- Results Card -->
+          <div class="results-card" id="resultsCard">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <h3 style="color: #2e7d32; font-size: 16px;">✓ Compression Complete!</h3>
+              <span class="guarantee-badge" id="savingsBadge">-0%</span>
+            </div>
+
+            <div class="results-grid">
+              <!-- Original -->
+              <div>
+                <div style="font-weight: bold; margin-bottom: 6px;">Original: <span id="resOrigSize" style="color: #666;">-</span></div>
+                <div class="preview-container" id="origPreview"></div>
+              </div>
+
+              <!-- Output -->
+              <div>
+                <div style="font-weight: bold; margin-bottom: 6px;">Compressed: <span id="resCompSize" style="color: #2e7d32;">-</span></div>
+                <div class="preview-container" id="compPreview"></div>
+              </div>
+            </div>
+
+            <button class="btn-download-big" id="btnDownload">
+              💾 Download Compressed File
             </button>
-          </div>
-
-          <!-- Windows XP Animated Progress Bar Container -->
-          <div class="xp-progressbar-container" id="progressContainer">
-            <div class="progress-text">
-              <span id="progressStatusLabel">Compressing media stream...</span>
-              <span id="progressPctLabel">0%</span>
-            </div>
-            <div class="xp-progress-track">
-              <div class="xp-progress-fill" id="progressBar"></div>
-            </div>
-          </div>
-
-          <!-- Side-by-Side Comparison & Preview Panel -->
-          <div class="comparison-panel" id="comparisonPanel">
-            <!-- Original Box -->
-            <div class="preview-box">
-              <h4>Original Media</h4>
-              <div class="preview-media-container" id="origPreviewContainer">
-                <span style="color: #888;">No preview</span>
-              </div>
-              <div class="preview-meta">
-                <div><strong>Size:</strong> <span id="origSizeLabel">-</span></div>
-                <div><strong>Format:</strong> <span id="origFormatLabel">-</span></div>
-              </div>
-            </div>
-
-            <!-- Compressed Result Box -->
-            <div class="preview-box">
-              <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
-                <h4>Compressed Output</h4>
-                <span class="badge-savings" id="badgeSavings">-0%</span>
-              </div>
-              <div class="preview-media-container" id="compressedPreviewContainer">
-                <span style="color: #888;">Compressing...</span>
-              </div>
-              <div class="preview-meta">
-                <div><strong>Output Size:</strong> <span id="compSizeLabel" style="color: #2e7d32; font-weight: bold;">-</span></div>
-                <div><strong>Format:</strong> <span id="compFormatLabel">-</span></div>
-                <div style="margin-top: 8px;">
-                  <button class="xp-button primary" id="btnDownload" style="width: 100%;">
-                    💾 Download Compressed File
-                  </button>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
 
-        <!-- Tab 2: Batch Processing Queue -->
-        <div class="tab-pane" id="batchTab">
-          <div class="xp-groupbox">
-            <legend>Batch Media Queue</legend>
-            <div style="margin-bottom: 8px; display: flex; gap: 8px; justify-content: space-between;">
-              <div>
-                <button class="xp-button" id="btnBatchAdd">➕ Add Files to Queue</button>
-                <input type="file" id="batchFileInput" multiple accept="image/*,video/*" style="display: none;">
-                <button class="xp-button" id="btnBatchClear">🧹 Clear Queue</button>
+        <!-- Tab 2: Batch Queue -->
+        <div class="tab-content" id="tabBatch">
+          <div class="section-box" style="margin-top: 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
+              <div style="display: flex; gap: 8px;">
+                <button class="preset-chip" id="btnAddBatchFiles" style="padding: 8px 14px;">➕ Add Files</button>
+                <input type="file" id="batchInput" multiple accept="image/*,video/*" style="display: none;">
+                <button class="preset-chip" id="btnClearBatch" style="padding: 8px 14px;">🧹 Clear</button>
               </div>
-              <div>
-                <button class="xp-button primary" id="btnBatchStart" disabled>⚡ Process All Queue</button>
-                <button class="xp-button" id="btnBatchZip" disabled>📦 Download All (ZIP)</button>
+              <div style="display: flex; gap: 8px;">
+                <button class="preset-chip active" id="btnStartBatch" style="padding: 8px 14px;" disabled>⚡ Compress All</button>
+                <button class="preset-chip" id="btnDownloadZip" style="padding: 8px 14px;" disabled>📦 Download ZIP</button>
               </div>
             </div>
 
             <table class="batch-table">
               <thead>
                 <tr>
-                  <th>Filename</th>
-                  <th>Original Size</th>
-                  <th>Target Size</th>
+                  <th>File</th>
+                  <th>Original</th>
+                  <th>Target</th>
                   <th>Status</th>
-                  <th>Compressed Size</th>
-                  <th>Action</th>
+                  <th>Compressed</th>
+                  <th>Save</th>
                 </tr>
               </thead>
               <tbody id="batchTableBody">
                 <tr>
-                  <td colspan="6" style="text-align: center; color: #666; padding: 16px;">
-                    No files in batch queue. Click "Add Files to Queue" to begin.
+                  <td colspan="6" style="text-align: center; color: #777; padding: 20px;">
+                    No files added yet. Click "Add Files" to batch compress multiple items.
                   </td>
                 </tr>
               </tbody>
@@ -293,83 +234,21 @@
           </div>
         </div>
 
-        <!-- Tab 3: XP Command Prompt Terminal -->
-        <div class="tab-pane" id="cmdTab">
-          <div style="background: #ece9d8; padding: 4px; font-weight: bold; color: #000;">
-            C:\WINDOWS\system32\cmd.exe - [FFmpeg WebAssembly Engine]
-          </div>
-          <div class="xp-cmd" id="cmdLogOutput">Microsoft Windows XP [Version 5.1.2600]
-(C) Copyright 1985-2001 Microsoft Corp.
-
-C:\MediaShrink> initializing WASM sandbox...
-[MediaShrink XP] Engine ready. Waiting for input media file...</div>
-          <div style="margin-top: 6px; display: flex; justify-content: flex-end;">
-            <button class="xp-button" id="btnClearLogs">Clear Terminal</button>
-          </div>
+        <!-- Tab 3: Activity Log -->
+        <div class="tab-content" id="tabLog">
+          <div class="terminal-view" id="terminalLog">MediaShrink Client-Side Engine Initialized.
+Target size enforcement: Active (Hard limit).
+Ready for media input...</div>
+          <button class="preset-chip" id="btnClearTerminal" style="margin-top: 8px; padding: 6px 12px;">Clear Log</button>
         </div>
 
-        <!-- Tab 4: About MediaShrink XP -->
-        <div class="tab-pane" id="aboutTab">
-          <div class="xp-groupbox">
-            <legend>System Properties</legend>
-            <div style="display: flex; gap: 16px; align-items: center;">
-              <div style="font-size: 56px;">🗜️</div>
-              <div>
-                <h3 style="color: #003399; font-size: 14px;">MediaShrink XP Professional</h3>
-                <div style="color: #666; margin: 4px 0 8px 0;">Version 2.0 (Client-Side WASM Edition)</div>
-                <p style="line-height: 16px;">
-                  MediaShrink XP is a 100% in-browser image and video compressor that operates without server uploads.
-                  It intelligently determines bitrates and dimension scaling to hit any target size (including ultra-small targets under 8 MB, 2 MB, and 500 KB).
-                </p>
-                <div style="margin-top: 10px; font-weight: bold; color: #003399;">
-                  Features:
-                </div>
-                <ul style="margin-left: 20px; line-height: 16px;">
-                  <li>Arbitrary target size selection (KB or MB)</li>
-                  <li>Smart adaptive resolution scaling for low bitrates</li>
-                  <li>Native Canvas & WebP optimization for images</li>
-                  <li>FFmpeg WebAssembly engine for MP4/WebM video</li>
-                  <li>Batch queue with ZIP export</li>
-                  <li>Windows XP Luna Blue Retro User Experience with Audio FX</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
 
-      <!-- Window Status Bar -->
+      <!-- Status Bar -->
       <div class="window-statusbar">
-        <div class="status-segment grow" id="statusMessage">Ready for media input</div>
-        <div class="status-segment" id="statusMemory">WASM Memory: SharedArrayBuffer</div>
-        <div class="status-segment">100% Private (No Upload)</div>
+        <span id="statusLabel">Ready</span>
+        <span>100% Private (Runs locally in browser)</span>
       </div>
-    </div>
-  </div>
-
-  <!-- Windows XP Taskbar -->
-  <div class="taskbar">
-    <button class="start-button" id="btnStartMenu">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M2 3.5L10.5 2V11.5H2V3.5Z" fill="#F25022"/>
-        <path d="M12 1.8L22 0.5V11.5H12V1.8Z" fill="#7FBA00"/>
-        <path d="M2 12.5H10.5V22L2 20.5V12.5Z" fill="#00A4EF"/>
-        <path d="M12 12.5H22V23.5L12 22.2V12.5Z" fill="#FFB900"/>
-      </svg>
-      start
-    </button>
-
-    <div class="taskbar-tasks">
-      <div class="task-item" id="taskbarAppItem">
-        <span>🗜️</span>
-        <span>MediaShrink.exe</span>
-      </div>
-    </div>
-
-    <div class="system-tray">
-      <span class="tray-icon" id="traySoundIcon" title="Toggle XP Sound Effects">🔊</span>
-      <span class="tray-icon" title="Local Client-Side Storage">💾</span>
-      <span id="systemTime" style="font-size: 11px;">12:00 PM</span>
     </div>
   </div>
 
