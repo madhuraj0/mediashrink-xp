@@ -522,3 +522,16 @@ btnClearTerminal.addEventListener('click', () => {
 
 // Initialization
 updateSoundUI();
+
+// Online / Offline Status Detection
+const offlineStatus = document.getElementById('offlineStatus');
+function updateOnlineStatus() {
+  if (offlineStatus) {
+    offlineStatus.textContent = navigator.onLine 
+      ? '🟢 Offline Ready (100% Private)' 
+      : '⚡ Working Offline (Airplane Mode)';
+  }
+}
+window.addEventListener('online', updateOnlineStatus);
+window.addEventListener('offline', updateOnlineStatus);
+updateOnlineStatus();

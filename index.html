@@ -7,24 +7,26 @@
   <!-- Primary SEO Meta Tags -->
   <title>MediaShrink - In-Browser Video & Image Compressor to Target File Size</title>
   <meta name="title" content="MediaShrink - In-Browser Video & Image Compressor to Target File Size">
-  <meta name="description" content="Free, 100% private in-browser media compressor. Compress and resize MP4, WebM, WebP, JPEG to exact target file sizes (e.g. 500KB, 1MB, 8MB for Discord) with zero server uploads.">
-  <meta name="keywords" content="video compressor, image compressor, target file size, compress video to 8mb, discord video compressor, 1mb video compressor, ffmpeg wasm, client-side video compressor, webp converter, mp4 compressor, online video shrinker, private video compressor">
+  <meta name="description" content="Free, 100% private in-browser media compressor. Compress and resize MP4, WebM, WebP, JPEG to exact target file sizes (e.g. 500KB, 1MB, 8MB for Discord) with zero server uploads. Works 100% offline.">
+  <meta name="keywords" content="video compressor, image compressor, target file size, compress video to 8mb, discord video compressor, 1mb video compressor, ffmpeg wasm, client-side video compressor, webp converter, mp4 compressor, online video shrinker, private video compressor, offline video compressor">
   <meta name="author" content="Madhuraj">
   <meta name="robots" content="index, follow">
+  <meta name="theme-color" content="#0058ee">
   <link rel="canonical" href="https://madhuraj0.github.io/mediashrink-xp/">
+  <link rel="manifest" href="./manifest.json">
 
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://madhuraj0.github.io/mediashrink-xp/">
   <meta property="og:title" content="MediaShrink - In-Browser Video & Image Compressor to Target File Size">
-  <meta property="og:description" content="Compress videos and images to exact target file sizes in your browser with zero uploads.">
+  <meta property="og:description" content="Compress videos and images to exact target file sizes in your browser with zero uploads. Works 100% offline.">
   <meta property="og:image" content="https://madhuraj0.github.io/mediashrink-xp/favicon.svg">
 
   <!-- Twitter -->
   <meta property="twitter:card" content="summary_large_image">
   <meta property="twitter:url" content="https://madhuraj0.github.io/mediashrink-xp/">
   <meta property="twitter:title" content="MediaShrink - In-Browser Video & Image Compressor to Target File Size">
-  <meta property="twitter:description" content="Compress videos and images to exact target file sizes in your browser with zero uploads.">
+  <meta property="twitter:description" content="Compress videos and images to exact target file sizes in your browser with zero uploads. Works 100% offline.">
 
   <!-- Schema.org JSON-LD Structured Data for SEO -->
   <script type="application/ld+json">
@@ -33,7 +35,7 @@
     "@type": "WebApplication",
     "name": "MediaShrink",
     "url": "https://madhuraj0.github.io/mediashrink-xp/",
-    "description": "Client-side browser application to compress and convert videos and images to strict target file sizes.",
+    "description": "Client-side offline-ready browser application to compress and convert videos and images to strict target file sizes.",
     "applicationCategory": "MultimediaApplication",
     "operatingSystem": "All modern browsers (Chrome, Firefox, Safari, Edge)",
     "offers": {
@@ -110,7 +112,7 @@
             <input type="file" id="fileInput" accept="image/*,video/*" style="display: none;">
             <div class="dropzone-icon">📁</div>
             <div class="dropzone-title">Click to browse or Drag & Drop any video or image</div>
-            <div class="dropzone-desc">MP4, WebM, MOV, MKV, JPG, PNG, WebP • 100% Client-Side & Private</div>
+            <div class="dropzone-desc">MP4, WebM, MOV, MKV, JPG, PNG, WebP • 100% Client-Side & Offline Ready</div>
           </div>
 
           <!-- Selected File Details -->
@@ -236,10 +238,8 @@
           </div>
         </section>
 
-        <!-- Tab 2: Batch Queue (With Dedicated Batch Settings) -->
+        <!-- Tab 2: Batch Queue -->
         <section class="tab-content" id="tabBatch" role="tabpanel">
-          
-          <!-- Batch Target Size & Settings Panel -->
           <div class="section-box" style="margin-top: 0;">
             <div class="section-title">
               <span>🎯</span>
@@ -356,16 +356,17 @@
         <!-- Tab 3: Activity Log -->
         <section class="tab-content" id="tabLog" role="tabpanel">
           <div class="terminal-view" id="terminalLog">MediaShrink Engine Initialized.
+100% Offline Ready (Cached in local storage).
 Ready for media compression.</div>
           <button class="preset-chip" id="btnClearTerminal" style="margin-top: 8px; padding: 6px 12px;">Clear Log</button>
         </section>
 
       </div>
 
-      <!-- Status Bar -->
+      <!-- Status Bar with Offline Indicator -->
       <footer class="window-statusbar">
         <span id="statusLabel">Ready</span>
-        <span>100% Private (Runs locally in browser)</span>
+        <span id="offlineStatus">🟢 Offline Ready (100% Private)</span>
       </footer>
     </main>
   </div>

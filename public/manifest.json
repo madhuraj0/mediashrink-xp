@@ -1,0 +1,17 @@
+{
+  "name": "MediaShrink",
+  "short_name": "MediaShrink",
+  "description": "100% private in-browser video & image compressor and converter to hit exact target file sizes offline.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#3a6ea5",
+  "theme_color": "#0058ee",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🗜️</text></svg>",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
