@@ -39,4 +39,4 @@ npm run dev
 ---
 
 ## 📄 License
-MIT License • Created by [Madhuraj](https://github.com/madhuraj0) using [Antigravity CLI](https://antigravity.google).
+MIT License 
